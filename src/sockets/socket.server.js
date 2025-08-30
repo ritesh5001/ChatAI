@@ -36,7 +36,7 @@ const messageModel = require("../models/message.model")
         
         socket.on("ai-message", async(messagePayload)=>{
 
-            console.log(messagePayload);
+            
 
             await messageModel.create({
                 chat:messagePayload.chat,
@@ -45,13 +45,24 @@ const messageModel = require("../models/message.model")
                 role:"user"
             })
 
-            const response = await aiService.generateResponse(messagePayload.content)
+            const chatHistory = await messageModel.find({
+                chat: messagePayload.chat
+            })
+
+            
+
+            const response = await aiService.generateResponse(chatHistory.map(item=>{
+                return{
+                    role: item.role,
+                    parts:[{ text: item.content }]
+                }
+            }))
 
             await messageModel.create({
                 chat:messagePayload.chat,
                 user:socket.user._id,
                 content:response,
-                role:"user"
+                role:"model"
             })
 
             socket.emit('ai-response',{
