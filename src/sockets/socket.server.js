@@ -45,9 +45,9 @@ const messageModel = require("../models/message.model")
                 role:"user"
             })
 
-            const chatHistory = await messageModel.find({
+            const chatHistory = (await messageModel.find({
                 chat: messagePayload.chat
-            })
+            }).sort({createdAt:-1}).limit(4).lean()).reverse() 
 
             
 
