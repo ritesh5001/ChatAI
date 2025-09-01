@@ -7,7 +7,7 @@ const messageModel = require("../models/message.model")
 
  function initSocketServer(httpServer){
     const io = new Server(httpServer,{})
-
+  
     io.use(async(socket,next)=>{
 
         const cookies = cookie.parse(socket.handshake.headers?.cookie || "");
