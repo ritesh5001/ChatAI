@@ -48,14 +48,27 @@ const {createMemory,queryMemory} = require("../services/vector.service")
 
             const vectors = await aiService.generateVector(messagePayload.content)
 
+            const memory = await queryMemory({
+                queryVector:vectors,
+                limit:3,
+                metadata:{
+
+                }
+            })
+
             await createMemory({
                 vectors,
                 messageId: message._id,
                 metadata:{
                     chat: messagePayload.chat,
-                    user:socket.user._id
+                    user:socket.user._id,
+                    text: messagePayload.content
                 }
             })
+
+            
+
+            console.log(memory) 
 
             const chatHistory = (await messageModel.find({
                 chat: messagePayload.chat
@@ -84,7 +97,8 @@ const {createMemory,queryMemory} = require("../services/vector.service")
                 messageId:responseMessage._id,
                 metadata:{
                     chat: messagePayload.chat,
-                    user:socket.user._id
+                    user:socket.user._id,
+                    text: response
                 }
             })
 
