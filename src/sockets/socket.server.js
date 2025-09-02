@@ -39,39 +39,58 @@ const {createMemory,queryMemory} = require("../services/vector.service")
 
             
 
-            // await messageModel.create({
-            //     chat:messagePayload.chat,
-            //     user:socket.user._id,
-            //     content:messagePayload.content,
-            //     role:"user"
-            // })
+            const message = await messageModel.create({
+                chat:messagePayload.chat,
+                user:socket.user._id,
+                content:messagePayload.content,
+                role:"user"
+            })
 
             const vectors = await aiService.generateVector(messagePayload.content)
-            console.log("Vectors generated",vectors)
+
+            await createMemory({
+                vectors,
+                messageId: message._id,
+                metadata:{
+                    chat: messagePayload.chat,
+                    user:socket.user._id
+                }
+            })
 
             const chatHistory = (await messageModel.find({
                 chat: messagePayload.chat
-            }).sort({createdAt:-1}).limit(4).lean()).reverse() 
+            }).sort({createdAt:-1}).limit(20).lean()).reverse() 
 
             
 
             const response = await aiService.generateResponse(chatHistory.map(item=>{
                 return{
                     role: item.role,
-                    parts:[{ text: item.content }]
+                    parts: [{ text: item.content }]
                 }
             }))
 
-            // await messageModel.create({
-            //     chat:messagePayload.chat,
-            //     user:socket.user._id,
-            //     content:response,
-            //     role:"model"
-            // })
+            const responseMessage =  await messageModel.create({
+                chat:messagePayload.chat,
+                user:socket.user._id,
+                content:response,
+                role:"model"
+            })
+
+            const responseVectors = await aiService.generateVector(response)
+
+            await createMemory({
+                vectors:responseVectors,
+                messageId:responseMessage._id,
+                metadata:{
+                    chat: messagePayload.chat,
+                    user:socket.user._id
+                }
+            })
 
             socket.emit('ai-response',{
-                content:response,
-                chat:messagePayload.chat
+                content: response,
+                chat: messagePayload.chat
             })
         })
 

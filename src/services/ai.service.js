@@ -1,4 +1,4 @@
-const {GoogleGenAI} = require("@google/genai")
+const { GoogleGenAI } = require("@google/genai")
 
 
 const ai = new GoogleGenAI({})
@@ -15,14 +15,14 @@ async function generateResponse(content ) {
 
 async function generateVector(content){
     const response = await ai.models.embedContent({
-        model:"gemini-embedding-001",
-        contents:content,
+        model: 'gemini-embedding-001',
+        contents: content,
         config:{
             outputDimensionality:768
         }
     })
     
-    return response.embeddings
+    return response.embeddings[ 0 ].values
 
 }
 
