@@ -1,25 +1,25 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { io } from "socket.io-client";
-import '../styles/Home.css';
-// import ChatMobileBar from '../components/chat/ChatMobileBar.jsx';
-// import ChatSidebar from '../components/chat/ChatSidebar.jsx';
-// import ChatMessages from '../components/chat/ChatMessages.jsx';
-// import ChatComposer from '../components/chat/ChatComposer.jsx';
-// import '../components/chat/ChatLayout.css';
-// import { fakeAIReply } from '../components/chat/aiClient.js';
+import '../styles/theme.css';
+import ChatMobileBar from '../components/chat/ChatMobileBar.jsx';
+import ChatSidebar from '../components/chat/ChatSidebar.jsx';
+import ChatMessages from '../components/chat/ChatMessages.jsx';
+import ChatComposer from '../components/chat/ChatComposer.jsx';
+import '../components/chat/ChatLayout.css';
+import { fakeAIReply } from '../components/chat/aiClient.js';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
-// import {
-//   ensureInitialChat,
-//   startNewChat,
-//   selectChat,
-//   setInput,
-//   sendingStarted,
-//   sendingFinished,
-//   addUserMessage,
-//   addAIMessage,
-//   setChats
-// } from '../store/chatSlice.js';
+import {
+  ensureInitialChat,
+  startNewChat,
+  selectChat,
+  setInput,
+  sendingStarted,
+  sendingFinished,
+  addUserMessage,
+  addAIMessage,
+  setChats
+} from '../store/chatSlice.js';
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -62,7 +62,7 @@ const Home = () => {
   // Ensure at least one chat exists initially
   useEffect(() => {
 
-    axios.get("http://localhost:3000//api/chat", { withCredentials: true })
+    axios.get("http://localhost:3000/api/chat", { withCredentials: true })
       .then(response => {
         dispatch(setChats(response.data.chats.reverse()));
       })
@@ -120,7 +120,7 @@ const Home = () => {
 
   const getMessages = async (chatId) => {
 
-   const response = await  axios.get(`http://localhost:5173//api/chat/messages/${chatId}`, { withCredentials: true })
+   const response = await  axios.get(`http://localhost:5173/api/chat/messages/${chatId}`, { withCredentials: true })
 
    console.log("Fetched messages:", response.data.messages);
 
@@ -133,7 +133,7 @@ const Home = () => {
 
 
 return (
-  <div className="chat-layout minimal">
+  <div className="chat-layout minimal" style={{ background: 'var(--color-bg)', color: 'var(--color-text)', minHeight: '100vh' }}>
     <ChatMobileBar
       onToggleSidebar={() => setSidebarOpen(o => !o)}
       onNewChat={handleNewChat}
@@ -149,11 +149,11 @@ return (
       onNewChat={handleNewChat}
       open={sidebarOpen}
     />
-    <main className="chat-main" role="main">
+    <main className="chat-main" role="main" style={{ background: 'var(--color-bg-alt)', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-sm)', margin: 'var(--space-4)', padding: 'var(--space-4)' }}>
       {messages.length === 0 && (
-        <div className="chat-welcome" aria-hidden="true">
-          <div className="chip">Early Preview</div>
-          <h1>ChatGPT Clone</h1>
+        <div className="chat-welcome" aria-hidden="true" style={{ color: 'var(--color-text-muted)' }}>
+          <div className="chip" style={{ background: 'var(--color-primary)', color: '#fff', borderRadius: 'var(--radius-full)', padding: '0.25em 1em', marginBottom: 'var(--space-4)' }}>Early Preview</div>
+          <h1 style={{ fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--text-lg)' }}>Ask Jarvis</h1>
           <p>Ask anything. Paste text, brainstorm ideas, or get quick explanations. Your chats stay in the sidebar so you can pick up where you left off.</p>
         </div>
       )}
