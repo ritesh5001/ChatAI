@@ -1,0 +1,106 @@
+/* Register & Login page styles, mobile-first, seamless, using theme variables */
+@import './theme.css';
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+.center-min-h-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+}
+
+.auth-card {
+  background: var(--color-secondary);
+  color: var(--color-text);
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  padding: 2rem 1.5rem;
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing);
+}
+
+.auth-header h1 {
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
+.auth-sub {
+  font-size: 1rem;
+  color: var(--color-primary);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing);
+}
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+input {
+  padding: 0.75rem;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--input-text);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  min-width: 0;
+}
+input:focus {
+  border-color: var(--color-primary);
+}
+.primary-btn {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 0.75rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.primary-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.auth-alt {
+  text-align: center;
+  font-size: 0.95rem;
+}
+.auth-form > .field-group,
+.auth-form > .grid-2 {
+  margin-bottom: 0.5rem;
+}
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  width: 100%;
+}
+.grid-2 .field-group {
+  margin-bottom: 0;
+}
+@media (max-width: 600px) {
+  .auth-card {
+    padding: 1.25rem 0.5rem;
+    max-width: 100vw;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .grid-2 {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
