@@ -1,0 +1,24 @@
+/* theme.css: Centralized CSS variables for light/dark theme */
+:root {
+  --color-bg: #f5f6fa;
+  --color-text: #222;
+  --color-primary: #4f8cff;
+  --color-secondary: #fff;
+  --color-border: #e0e0e0;
+  --input-bg: #fff;
+  --input-text: #222;
+  --input-border: #ccc;
+  --border-radius: 8px;
+  --spacing: 1rem;
+}
+
+[data-theme="dark"] {
+  --color-bg: #181a20;
+  --color-text: #f5f6fa;
+  --color-primary: #4f8cff;
+  --color-secondary: #222;
+  --color-border: #333;
+  --input-bg: #222;
+  --input-text: #f5f6fa;
+  --input-border: #444;
+}
