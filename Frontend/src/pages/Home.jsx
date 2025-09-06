@@ -32,16 +32,7 @@ const Home = () => {
 
   const activeChat = chats.find(c => c.id === activeChatId) || null;
 
-  const [ messages, setMessages ] = useState([
-    // {
-    //   type: 'user',
-    //   content: 'Hello, how can I help you today?'
-    // },
-    // {
-    //   type: 'ai',
-    //   content: 'Hi there! I need assistance with my account.'
-    // }
-  ]);
+  const [ messages, setMessages ] = useState([]);
 
   const handleNewChat = async () => {
     // Prompt user for title of new chat, fallback to 'New Chat'
@@ -54,18 +45,26 @@ const Home = () => {
     }, {
       withCredentials: true
     })
+
+    console.log(response.data)
+
     getMessages(response.data.chat._id);
     dispatch(startNewChat(response.data.chat));
     setSidebarOpen(false);
   }
 
   // Ensure at least one chat exists initially
+
   useEffect(() => {
 
     axios.get("http://localhost:3000/api/chat", { withCredentials: true })
       .then(response => {
+        console.log(response.data)
         dispatch(setChats(response.data.chats.reverse()));
       })
+
+      
+
 
     const tempSocket = io("http://localhost:3000/", {
       withCredentials: true,
@@ -85,6 +84,27 @@ const Home = () => {
     setSocket(tempSocket);
 
   }, []);
+
+// useEffect(() => {
+//   axios.get("http://localhost:3000/api/chat", { withCredentials: true })
+//     .then(response => {
+//       dispatch(setChats(response.data.chats.reverse()));
+//     });
+
+//   const tempSocket = io("http://localhost:3000/", {
+//     withCredentials: true,
+//   });
+
+//   tempSocket.on("ai-response", (messagePayload) => {
+//     setMessages(prev => [...prev, { type: "ai", content: messagePayload.content }]);
+//     dispatch(sendingFinished());
+//   });
+
+//   setSocket(tempSocket);
+
+//   return () => tempSocket.disconnect(); // cleanup on unmount
+// }, []);
+
 
   const sendMessage = async () => {
 
@@ -119,15 +139,15 @@ const Home = () => {
   }
 
   const getMessages = async (chatId) => {
+    // Corrected the port from 5173 (frontend) to 3000 (backend)
+    const response = await axios.get(`http://localhost:3000/api/chat/messages/${chatId}`, { withCredentials: true })
 
-   const response = await  axios.get(`http://localhost:5173/api/chat/messages/${chatId}`, { withCredentials: true })
+    console.log("Fetched messages:", response.data.messages);
 
-   console.log("Fetched messages:", response.data.messages);
-
-   setMessages(response.data.messages.map(m => ({
-     type: m.role === 'user' ? 'user' : 'ai',
-     content: m.content
-   })));
+    setMessages(response.data.messages.map(m => ({
+      type: m.role === 'user' ? 'user' : 'ai',
+      content: m.content
+    })));
 
   }
 

@@ -23,3 +23,6 @@ async function queryMemory({queryVector,limit = 5,metadata}){
 }
 
 module.exports = {createMemory,queryMemory}; 
+
+
+
