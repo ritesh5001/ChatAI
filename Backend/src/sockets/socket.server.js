@@ -7,7 +7,13 @@ const messageModel = require("../models/message.model")
 const { createMemory, queryMemory } = require("../services/vector.service")
 
 function initSocketServer(httpServer) {
-    const io = new Server(httpServer, {})
+    const io = new Server(httpServer, {
+        cors:{
+            origin:"http://localhost:5173",
+            allowedHeaders:["Content-Type", "Authorization"],
+            credentials:true,
+        }
+    })
 
     io.use(async (socket, next) => {
 
@@ -49,7 +55,7 @@ function initSocketServer(httpServer) {
                 aiService.generateVector(messagePayload.content),
 
             ])
-
+ 
             await createMemory({
                 vectors,
                 messageId: message._id,
@@ -65,7 +71,7 @@ function initSocketServer(httpServer) {
                     queryVector: vectors,
                     limit: 3,
                     metadata: {
-                        user: socket._id
+                        user: socket.user._id
                     }
                 }),
 

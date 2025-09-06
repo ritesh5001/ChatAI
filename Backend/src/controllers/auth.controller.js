@@ -59,7 +59,7 @@ async function loginUser(req,res) {
     res.status(200).json({
         message:"user logged in succesfully",
         user:{
-            email:user.emaill,
+            email:user.email,
             _id:user._id,
             fullName:user.fullName
         }
