@@ -85,27 +85,6 @@ const Home = () => {
 
   }, []);
 
-// useEffect(() => {
-//   axios.get("http://localhost:3000/api/chat", { withCredentials: true })
-//     .then(response => {
-//       dispatch(setChats(response.data.chats.reverse()));
-//     });
-
-//   const tempSocket = io("http://localhost:3000/", {
-//     withCredentials: true,
-//   });
-
-//   tempSocket.on("ai-response", (messagePayload) => {
-//     setMessages(prev => [...prev, { type: "ai", content: messagePayload.content }]);
-//     dispatch(sendingFinished());
-//   });
-
-//   setSocket(tempSocket);
-
-//   return () => tempSocket.disconnect(); // cleanup on unmount
-// }, []);
-
-
   const sendMessage = async () => {
 
     const trimmed = input.trim();
@@ -128,14 +107,6 @@ const Home = () => {
       content: trimmed
     })
 
-    // try {
-    //   const reply = await fakeAIReply(trimmed);
-    //   dispatch(addAIMessage(activeChatId, reply));
-    // } catch {
-    //   dispatch(addAIMessage(activeChatId, 'Error fetching AI response.', true));
-    // } finally {
-    //   dispatch(sendingFinished());
-    // }
   }
 
   const getMessages = async (chatId) => {
@@ -174,7 +145,7 @@ return (
         <div className="chat-welcome" aria-hidden="true" style={{ color: 'var(--color-text-muted)' }}>
           <div className="chip" style={{ background: 'var(--color-primary)', color: '#fff', borderRadius: 'var(--radius-full)', padding: '0.25em 1em', marginBottom: 'var(--space-4)' }}>Early Preview</div>
           <h1 style={{ fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--text-lg)' }}>Ask Jarvis</h1>
-          <p>Ask anything. Paste text, brainstorm ideas, or get quick explanations. Your chats stay in the sidebar so you can pick up where you left off.</p>
+          <p>If you haven’t logged in yet, please log in first. Once logged in, you can ask anything—paste text, brainstorm ideas, or get quick explanations. Your chats will stay in the sidebar so you can continue anytime.</p>
         </div>
       )}
       <ChatMessages messages={messages} isSending={isSending} />
