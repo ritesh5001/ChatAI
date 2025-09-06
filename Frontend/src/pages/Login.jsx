@@ -22,7 +22,7 @@ const Login = () => {
 
         console.log(form);
 
-        axios.post("http://localhost:3000/api/auth/login", {
+        axios.post("https://jarvis-ai-3cl2.onrender.com/api/auth/login", {
             email: form.email,
             password: form.password
         },
