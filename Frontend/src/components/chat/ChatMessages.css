@@ -195,3 +195,21 @@
   border-color: var(--color-danger);
   color: var(--color-danger);
 }
+
+/* Streaming cursor */
+.streaming-cursor {
+  display: inline-block;
+  color: var(--color-primary);
+  animation: blink 0.7s infinite;
+  margin-left: 2px;
+  font-weight: bold;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.msg-bubble.streaming {
+  min-height: 24px;
+}

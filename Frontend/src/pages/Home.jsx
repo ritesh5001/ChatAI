@@ -116,6 +116,66 @@ const Home = () => {
       withCredentials: true,
     });
 
+    // Streaming response handlers
+    tempSocket.on("ai-response-start", () => {
+      // Add empty AI message placeholder for streaming
+      setMessages((prevMessages) => [...prevMessages, {
+        type: 'ai',
+        content: '',
+        isStreaming: true
+      }]);
+    });
+
+    tempSocket.on("ai-response-chunk", (messagePayload) => {
+      // Append chunk to the last AI message
+      setMessages((prevMessages) => {
+        const newMessages = [...prevMessages];
+        const lastIndex = newMessages.length - 1;
+        if (lastIndex >= 0 && newMessages[lastIndex].type === 'ai') {
+          newMessages[lastIndex] = {
+            ...newMessages[lastIndex],
+            content: newMessages[lastIndex].content + messagePayload.content
+          };
+        }
+        return newMessages;
+      });
+    });
+
+    tempSocket.on("ai-response-end", (messagePayload) => {
+      // Mark streaming as complete
+      setMessages((prevMessages) => {
+        const newMessages = [...prevMessages];
+        const lastIndex = newMessages.length - 1;
+        if (lastIndex >= 0 && newMessages[lastIndex].type === 'ai') {
+          newMessages[lastIndex] = {
+            ...newMessages[lastIndex],
+            content: messagePayload.content,
+            isStreaming: false
+          };
+        }
+        return newMessages;
+      });
+      dispatch(sendingFinished());
+    });
+
+    tempSocket.on("ai-response-error", (error) => {
+      console.error("AI response error:", error);
+      setMessages((prevMessages) => {
+        const newMessages = [...prevMessages];
+        const lastIndex = newMessages.length - 1;
+        if (lastIndex >= 0 && newMessages[lastIndex].type === 'ai' && newMessages[lastIndex].isStreaming) {
+          newMessages[lastIndex] = {
+            ...newMessages[lastIndex],
+            content: "Sorry, I encountered an error. Please try again.",
+            isStreaming: false
+          };
+        }
+        return newMessages;
+      });
+      dispatch(sendingFinished());
+    });
+
+    // Legacy handler for backward compatibility
     tempSocket.on("ai-response", (messagePayload) => {
       console.log("Received AI response:", messagePayload);
 

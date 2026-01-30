@@ -90,6 +90,33 @@ async function generateResponse(content) {
   return response?.choices?.[0]?.message?.content?.trim() || "";
 }
 
+// Streaming version for real-time responses
+async function generateResponseStream(content, onChunk) {
+  const messages = [
+    { role: "system", content: SYSTEM_PROMPT },
+    ...normalizeMessages(content)
+  ];
+
+  const stream = await groq.chat.completions.create({
+    model: process.env.GROQ_CHAT_MODEL || "llama-3.1-8b-instant",
+    temperature: Number(process.env.GROQ_TEMPERATURE || 0.7),
+    messages,
+    stream: true
+  });
+
+  let fullResponse = "";
+  
+  for await (const chunk of stream) {
+    const content = chunk.choices[0]?.delta?.content || "";
+    if (content) {
+      fullResponse += content;
+      onChunk(content);
+    }
+  }
+
+  return fullResponse.trim();
+}
+
 async function generateVector(content) {
   const extractor = await getEmbeddingPipeline();
   const output = await extractor(String(content), {
@@ -102,6 +129,7 @@ async function generateVector(content) {
 
 module.exports = {
   generateResponse,
+  generateResponseStream,
   generateVector
 }
 

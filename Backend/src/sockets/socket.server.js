@@ -49,93 +49,106 @@ function initSocketServer(httpServer) {
 
         socket.on("ai-message", async (messagePayload) => {
 
+            // Start message creation and vector generation in parallel
+            const messagePromise = Message.create({
+                chatId: messagePayload.chat,
+                userId: socket.user.id,
+                content: messagePayload.content,
+                role: "user"
+            });
 
-            const [message, vectors] = await Promise.all([
-                Message.create({
-                    chatId: messagePayload.chat,
-                    userId: socket.user.id,
-                    content: messagePayload.content,
-                    role: "user"
-                }),
+            // Fetch chat history immediately (don't wait for vector)
+            const chatHistoryPromise = Message.findAll({
+                where: { chatId: messagePayload.chat },
+                order: [['createdAt', 'DESC']],
+                limit: 20,
+                raw: true
+            }).then(messages => messages.reverse());
 
-                aiService.generateVector(messagePayload.content),
-
-            ])
-
-            await createMemory({
-                vectors,
-                messageId: message.id,
-                metadata: {
-                    chat: messagePayload.chat,
-                    user: socket.user.id,
-                    text: messagePayload.content
-                }
-            })
-
-            const [memory, chatHistory] = await Promise.all([
-                queryMemory({
-                    queryVector: vectors,
-                    limit: 3,
-                    metadata: {
-                        user: socket.user.id
-                    }
-                }),
-
-                Message.findAll({
-                    where: { chatId: messagePayload.chat },
-                    order: [['createdAt', 'DESC']],
-                    limit: 20,
-                    raw: true
-                }).then(messages => messages.reverse())
-
-            ])
-
+            // Wait for chat history (needed for AI response)
+            const [message, chatHistory] = await Promise.all([
+                messagePromise,
+                chatHistoryPromise
+            ]);
 
             const stm = chatHistory.map(item => {
                 return {
                     role: item.role,
                     parts: [{ text: item.content }]
                 }
-            })
+            });
 
-            const ltm = [
-                {
-                    role: "user",
-                    parts: [{
-                        text: `
-                        these are some preveous from the chat, use them to generate a response
+            // Add current message to context
+            stm.push({
+                role: "user",
+                parts: [{ text: messagePayload.content }]
+            });
 
-                        ${memory.map(item => item.metadata.text).join("\n")}
-                        `}]
-                }
-            ]
+            // Start streaming response immediately
+            let fullResponse = "";
+            
+            socket.emit('ai-response-start', { chat: messagePayload.chat });
+            
+            try {
+                fullResponse = await aiService.generateResponseStream(stm, (chunk) => {
+                    socket.emit('ai-response-chunk', {
+                        content: chunk,
+                        chat: messagePayload.chat
+                    });
+                });
 
-            const response = await aiService.generateResponse([...ltm, ...stm])
+                socket.emit('ai-response-end', {
+                    content: fullResponse,
+                    chat: messagePayload.chat
+                });
 
-            socket.emit('ai-response', {
-                content: response,
-                chat: messagePayload.chat
-            })
+                // Save response and create vectors in background (after response is sent)
+                setImmediate(async () => {
+                    try {
+                        const [responseMessage, userVectors, responseVectors] = await Promise.all([
+                            Message.create({
+                                chatId: messagePayload.chat,
+                                userId: socket.user.id,
+                                content: fullResponse,
+                                role: "model"
+                            }),
+                            aiService.generateVector(messagePayload.content),
+                            aiService.generateVector(fullResponse)
+                        ]);
 
-            const [responseMessage, responseVectors] = await Promise.all([
-                Message.create({
-                    chatId: messagePayload.chat,
-                    userId: socket.user.id,
-                    content: response,
-                    role: "model"
-                }),
-                aiService.generateVector(response)
-            ])
+                        // Create memories in parallel
+                        await Promise.all([
+                            createMemory({
+                                vectors: userVectors,
+                                messageId: message.id,
+                                metadata: {
+                                    chat: messagePayload.chat,
+                                    user: socket.user.id,
+                                    text: messagePayload.content
+                                }
+                            }),
+                            createMemory({
+                                vectors: responseVectors,
+                                messageId: responseMessage.id,
+                                metadata: {
+                                    chat: messagePayload.chat,
+                                    user: socket.user.id,
+                                    text: fullResponse
+                                }
+                            })
+                        ]);
+                    } catch (err) {
+                        console.error("Background task error:", err);
+                    }
+                });
 
-            await createMemory({
-                vectors: responseVectors,
-                messageId: responseMessage.id,
-                metadata: {
-                    chat: messagePayload.chat,
-                    user: socket.user.id,
-                    text: response
-                }
-            })
+            } catch (error) {
+                console.error("AI response error:", error);
+                socket.emit('ai-response-error', {
+                    error: "Failed to generate response",
+                    chat: messagePayload.chat
+                });
+            }
         })
     })
 }

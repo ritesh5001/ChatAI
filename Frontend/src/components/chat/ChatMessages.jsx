@@ -15,13 +15,23 @@ const messageVariants = {
 
 const ChatMessages = ({ messages, isSending }) => {
   const bottomRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const [playingIndex, setPlayingIndex] = useState(null); // Track which message is playing
   const [isPaused, setIsPaused] = useState(false);
   const utteranceRef = useRef(null);
   
+  // Scroll on new messages or streaming updates
   useEffect(() => { 
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); 
-  }, [messages.length, isSending]);
+  }, [messages, isSending]);
+
+  // Auto-scroll during streaming (check last message content changes)
+  const lastMessage = messages[messages.length - 1];
+  useEffect(() => {
+    if (lastMessage?.isStreaming) {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [lastMessage?.content]);
 
   // Cleanup speech synthesis on unmount
   useEffect(() => {
@@ -97,12 +107,13 @@ const ChatMessages = ({ messages, isSending }) => {
               {m.type === 'user' ? 'You' : 'Jarvis'}
             </div>
             <motion.div 
-              className="msg-bubble"
+              className={`msg-bubble ${m.isStreaming ? 'streaming' : ''}`}
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
             >
               {m.content}
+              {m.isStreaming && <span className="streaming-cursor">▋</span>}
             </motion.div>
             <div className="msg-actions" role="group" aria-label="Message actions">
               <motion.button 
