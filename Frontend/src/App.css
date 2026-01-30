@@ -5,19 +5,22 @@
 }
 
 html,
-body {
+body,
+#root {
   height: 100%;
+  margin: 0;
+  padding: 0;
+  background: #000;
 }
 
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background: var(--color-bg);
+  background: #000;
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   line-height: 1.5;
-  color-scheme: light dark;
-  /* hint native UI */
+  color-scheme: dark;
 }
 
 a {

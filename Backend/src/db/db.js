@@ -21,7 +21,7 @@ async function connectDb() {
         Message.belongsTo(Chat, { foreignKey: 'chatId' });
         
         // Sync all models (creates tables if they don't exist)
-        await sequelize.sync({ alter: true });
+        await sequelize.sync();
         console.log("Database synchronized");
     } catch (err) {
         console.error("Error connecting to PostgreSQL", err);
