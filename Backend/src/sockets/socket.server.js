@@ -1,17 +1,17 @@
 const { Server } = require("socket.io");
 const cookie = require('cookie');
 const jwt = require("jsonwebtoken");
-const userModel = require("../models/user.model");
+const User = require("../models/user.model");
 const aiService = require("../services/ai.service");
-const messageModel = require("../models/message.model")
-const { createMemory, queryMemory } = require("../services/vector.service")
+const Message = require("../models/message.model");
+const { createMemory, queryMemory } = require("../services/vector.service");
 
 function initSocketServer(httpServer) {
     const io = new Server(httpServer, {
-        cors:{
-            origin:"http://localhost:5173",
-            allowedHeaders:["Content-Type", "Authorization"],
-            credentials:true,
+        cors: {
+            origin: "http://localhost:5173",
+            allowedHeaders: ["Content-Type", "Authorization"],
+            credentials: true,
         }
     })
 
@@ -27,7 +27,7 @@ function initSocketServer(httpServer) {
 
             const decoded = jwt.verify(cookies.token, process.env.JWT_SECRET);
 
-            const user = await userModel.findById(decoded.id);
+            const user = await User.findByPk(decoded.id);
 
             socket.user = user;
 
@@ -45,9 +45,9 @@ function initSocketServer(httpServer) {
 
 
             const [message, vectors] = await Promise.all([
-                messageModel.create({
-                    chat: messagePayload.chat,
-                    user: socket.user._id,
+                Message.create({
+                    chatId: messagePayload.chat,
+                    userId: socket.user.id,
                     content: messagePayload.content,
                     role: "user"
                 }),
@@ -55,13 +55,13 @@ function initSocketServer(httpServer) {
                 aiService.generateVector(messagePayload.content),
 
             ])
- 
+
             await createMemory({
                 vectors,
-                messageId: message._id,
+                messageId: message.id,
                 metadata: {
                     chat: messagePayload.chat,
-                    user: socket.user._id,
+                    user: socket.user.id,
                     text: messagePayload.content
                 }
             })
@@ -71,13 +71,16 @@ function initSocketServer(httpServer) {
                     queryVector: vectors,
                     limit: 3,
                     metadata: {
-                        user: socket.user._id
+                        user: socket.user.id
                     }
                 }),
 
-                messageModel.find({
-                    chat: messagePayload.chat
-                }).sort({ createdAt: -1 }).limit(20).lean().then(messages => messages.reverse())
+                Message.findAll({
+                    where: { chatId: messagePayload.chat },
+                    order: [['createdAt', 'DESC']],
+                    limit: 20,
+                    raw: true
+                }).then(messages => messages.reverse())
 
             ])
 
@@ -109,9 +112,9 @@ function initSocketServer(httpServer) {
             })
 
             const [responseMessage, responseVectors] = await Promise.all([
-                messageModel.create({
-                    chat: messagePayload.chat,
-                    user: socket.user._id,
+                Message.create({
+                    chatId: messagePayload.chat,
+                    userId: socket.user.id,
                     content: response,
                     role: "model"
                 }),
@@ -120,10 +123,10 @@ function initSocketServer(httpServer) {
 
             await createMemory({
                 vectors: responseVectors,
-                messageId: responseMessage._id,
+                messageId: responseMessage.id,
                 metadata: {
                     chat: messagePayload.chat,
-                    user: socket.user._id,
+                    user: socket.user.id,
                     text: response
                 }
             })

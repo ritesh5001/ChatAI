@@ -1,25 +1,29 @@
-const userModel = require('../models/user.model');
+const User = require('../models/user.model');
 const jwt = require('jsonwebtoken');
 
 
-async function authUser(req,res,next) {
+async function authUser(req, res, next) {
 
-    const{token} = req.cookies;
+    const { token } = req.cookies;
 
-    if(!token){
-        return res.status(401).json({message:'Unathorized'});
+    if (!token) {
+        return res.status(401).json({ message: 'Unathorized' });
     }
 
-    try{
+    try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        const user = await userModel.findById(decoded.id)
+        const user = await User.findByPk(decoded.id);
+
+        if (!user) {
+            return res.status(401).json({ message: 'Unathorized' });
+        }
 
         req.user = user;
         next();
     }
-    catch{
-        res.status(401).json({message:'Unathorized'})
+    catch {
+        res.status(401).json({ message: 'Unathorized' })
     }
 }
 
