@@ -1,47 +1,103 @@
 import React, { useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import './ChatMessages.css';
 
+const messageVariants = {
+  hidden: { opacity: 0, y: 20, scale: 0.95 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1,
+    transition: { type: "spring", stiffness: 500, damping: 30 }
+  },
+  exit: { opacity: 0, scale: 0.95 }
+};
 
 const ChatMessages = ({ messages, isSending }) => {
   const bottomRef = useRef(null);
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages.length, isSending]);
+  
+  useEffect(() => { 
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); 
+  }, [messages.length, isSending]);
+  
   return (
     <div className="messages" aria-live="polite">
-      {messages.map((m,index) => (
-        <div key={index} className={`msg msg-${m.type}`}>
-          <div className="msg-role" aria-hidden="true">{m.type === 'user' ? 'You' : 'AI'}</div>
-          <div className="msg-bubble">{m.content}</div>
-          <div className="msg-actions" role="group" aria-label="Message actions">
-            <button type="button" aria-label="Copy message" onClick={() => navigator.clipboard.writeText(m.content)}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
-            </button>
-            {m.role === 'ai' && (
-              <>
-                <button type="button" aria-label="Like response">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 10v11" /><path d="M15 21H9a2 2 0 0 1-2-2v-9l5-7 1 1a2 2 0 0 1 .5 1.3V9h5a2 2 0 0 1 2 2l-2 8a2 2 0 0 1-2 2Z" /></svg>
-                </button>
-                <button type="button" aria-label="Dislike response">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 14V3" /><path d="M9 3h6a2 2 0 0 1 2 2v9l-5 7-1-1a2 2 0 0 1-.5-1.3V15H5a2 2 0 0 1-2-2l2-8a2 2 0 0 1 2-2Z" /></svg>
-                </button>
-                <button type="button" aria-label="Speak message" onClick={() => { try { const u = new SpeechSynthesisUtterance(m.content); speechSynthesis.speak(u);} catch { /* speech synthesis unsupported */ } }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 8v8" /><path d="M8 4v16" /><path d="M12 2v20" /><path d="M19 5c1.5 2 1.5 12 0 14" /><path d="M16 8c.8 1 1 7 0 8" /></svg>
-                </button>
-                <button type="button" aria-label="Regenerate" onClick={() => { /* placeholder for regenerate logic */ }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 12A10 10 0 0 1 12 2c2.5 0 4.8 1 6.5 2.5L22 8" /><path d="M22 2v6h-6" /><path d="M22 12a10 10 0 0 1-10 10c-2.5 0-4.8-1-6.5-2.5L2 16" /><path d="M2 22v-6h6" /></svg>
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      ))}
-      {isSending && (
-        <div className="msg msg-ai pending">
-          <div className="msg-role" aria-hidden="true">AI</div>
-          <div className="msg-bubble typing-dots" aria-label="AI is typing">
-            <span/><span/><span/>
-          </div>
-        </div>
-      )}
+      <AnimatePresence mode="popLayout">
+        {messages.map((m, index) => (
+          <motion.div 
+            key={index} 
+            className={`msg msg-${m.type}`}
+            variants={messageVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            layout
+          >
+            <div className="msg-role" aria-hidden="true">
+              {m.type === 'user' ? 'You' : 'Jarvis'}
+            </div>
+            <motion.div 
+              className="msg-bubble"
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            >
+              {m.content}
+            </motion.div>
+            <div className="msg-actions" role="group" aria-label="Message actions">
+              <motion.button 
+                type="button" 
+                aria-label="Copy message" 
+                onClick={() => navigator.clipboard.writeText(m.content)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+              </motion.button>
+              {m.type === 'ai' && (
+                <motion.button 
+                  type="button" 
+                  aria-label="Speak message"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => { 
+                    try { 
+                      const u = new SpeechSynthesisUtterance(m.content); 
+                      speechSynthesis.speak(u);
+                    } catch { /* speech synthesis unsupported */ } 
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                  </svg>
+                </motion.button>
+              )}
+            </div>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+      
+      <AnimatePresence>
+        {isSending && (
+          <motion.div 
+            className="msg msg-ai pending"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="msg-role" aria-hidden="true">Jarvis</div>
+            <div className="msg-bubble typing-dots" aria-label="AI is typing">
+              <span /><span /><span />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
       <div ref={bottomRef} />
     </div>
   );

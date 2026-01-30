@@ -1,4 +1,5 @@
 @import url('./styles/theme.css');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 * {
   box-sizing: border-box;
@@ -10,17 +11,24 @@ body,
   height: 100%;
   margin: 0;
   padding: 0;
-  background: #000;
+  background: var(--color-bg);
 }
 
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background: #000;
+  background: var(--color-bg);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
-  line-height: 1.5;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
   color-scheme: dark;
+}
+
+/* Selection styling */
+::selection {
+  background: rgba(99, 102, 241, 0.3);
+  color: #fff;
 }
 
 a {

@@ -1,107 +1,158 @@
-/* === ChatGPT-like bottom composer === */
-/* Centered, max-width column, floating pill with subtle border */
+/* Modern Chat Composer - Aurora Theme */
 
 .composer {
-    position: sticky; /* stays above scroll end */
-    bottom: 0;
-    width: 100%;
-    padding: 24px 0 32px; /* vertical breathing room */
-    display: flex;
-    justify-content: center;
-    background: linear-gradient(to top, rgba(0,0,0,.85), rgba(0,0,0,0));
-    backdrop-filter: blur(12px);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  padding: 20px 20px 32px;
+  display: flex;
+  justify-content: center;
+  background: linear-gradient(to top, rgba(10, 10, 15, 0.98) 50%, rgba(10, 10, 15, 0.8) 80%, transparent);
+  z-index: 20;
+}
+
+@media (min-width: 960px) {
+  .composer {
+    left: 280px;
+    padding: 24px 32px 40px;
+  }
 }
 
 .composer-surface {
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
-    max-width: 820px; /* ChatGPT input width vibes */
-    width: 100%;
-    margin: 0 32px;
-    background: #1f1f20;
-    border: 1px solid #3a3a3c;
-    border-radius: 24px;
-    padding: 12px 14px 14px 18px; /* top tighter than bottom for hint room */
-    position: relative;
-    transition: border-color .15s, background-color .15s, box-shadow .15s;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  max-width: 800px;
+  width: 100%;
+  background: rgba(30, 30, 40, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 12px 16px;
+  position: relative;
+  transition: all 0.2s ease;
+  box-shadow: 
+    0 4px 24px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+  backdrop-filter: blur(20px);
 }
 
 .composer-surface:focus-within {
-    background: #232324;
-    border-color: #565759;
-    box-shadow: 0 0 0 1px #565759, 0 0 0 4px rgba(86,87,89,.25);
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 
+    0 4px 24px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 0 0 3px rgba(99, 102, 241, 0.15),
+    0 0 30px rgba(99, 102, 241, 0.1);
 }
 
-.composer-field { flex: 1; position: relative; }
+.composer-field {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
 
 .composer-input {
-    width: 100%;
-    resize: none;
-    border: 0;
-    outline: none;
-    background: transparent;
-    color: #f5f5f5;
-    font: inherit;
-    line-height: 1.5;
-    max-height: 260px;
-    padding: 0 0 18px 0; /* space for hint overlay */
+  width: 100%;
+  resize: none;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 24px;
+  max-height: 200px;
+  padding: 8px 0;
 }
 
-.composer-input::placeholder { color: #8d8d91; }
+.composer-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
 
 .composer-hint {
-    position: absolute;
-    left: 2px;
-    bottom: 2px;
-    font-size: 11px;
-    color: #5f6165;
-    pointer-events: none;
-    user-select: none;
-    line-height: 1.1;
-    font-weight: 500;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+  user-select: none;
+  margin-top: 4px;
+  padding-bottom: 4px;
 }
 
-/* Icon-only circular send button */
-.send-btn.icon-btn {
-    --size: 40px;
-    width: var(--size);
-    height: var(--size);
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: #3a3a3c;
-    border: 1px solid #525255;
-    color: #f1f1f2;
-    cursor: pointer;
-    transition: background-color .15s, border-color .15s, transform .15s;
-    flex-shrink: 0;
+/* Send button */
+.send-btn {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  box-shadow: 
+    0 4px 12px rgba(99, 102, 241, 0.4),
+    0 0 20px rgba(139, 92, 246, 0.2);
 }
 
-.send-btn.icon-btn:hover:not(:disabled) { background:#4a4a4d; }
-.send-btn.icon-btn:active:not(:disabled) { background:#343436; transform:translateY(1px); }
-.send-btn.icon-btn:disabled { opacity:.35; cursor: default; }
-.send-btn.icon-btn:focus-visible { outline:none; box-shadow:0 0 0 2px #fff,0 0 0 4px #000; }
-
-.send-icon { display:inline-flex; }
-
-/* Slide arrow a tad */
-.send-btn.icon-btn:hover:not(:disabled) .send-icon { transform: translateX(1px); }
-.send-icon svg { transition: transform .15s; }
-
-/* Compact adjustments for very narrow screens */
-@media (max-width:600px) {
-    .composer { padding: 16px 0 26px; }
-    .composer-surface { margin:0 12px; border-radius:20px; padding:10px 12px 12px 16px; }
-    .send-btn.icon-btn { --size:36px; }
+.send-btn:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 
+    0 6px 20px rgba(99, 102, 241, 0.5),
+    0 0 30px rgba(139, 92, 246, 0.3);
 }
 
-@media (max-width:420px) {
-    .composer-hint { display:none; }
-    .composer-input { padding-bottom:0; }
+.send-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .send-btn.icon-btn, .send-icon svg { transition: none; }
+.send-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.send-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.send-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .composer {
+    padding: 16px 12px 24px;
+  }
+  
+  .composer-surface {
+    padding: 10px 12px;
+    border-radius: 16px;
+  }
+  
+  .composer-input {
+    font-size: 16px; /* Prevent iOS zoom */
+  }
+  
+  .send-btn {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 10px;
+  }
+  
+  .composer-hint {
+    display: none;
+  }
 }

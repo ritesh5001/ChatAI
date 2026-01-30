@@ -1,70 +1,126 @@
 import React, { useState } from 'react';
-import { Link,useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import axios from 'axios';
 import '../styles/theme.css';
+import '../styles/auth.css';
 import API_URL from '../config/api';
 
-
 const Login = () => {
-    const [ form, setForm ] = useState({ email: '', password: '' });
-    const [ submitting, setSubmitting ] = useState(false);
-    const navigate = useNavigate();
-    
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-    function handleChange(e) {
-        const {name,value} = e.target;
-        setForm({...form,[name]:value});
+  function handleChange(e) {
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+    setError('');
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setSubmitting(true);
+    setError('');
+
+    try {
+      const res = await axios.post(`${API_URL}/api/auth/login`, {
+        email: form.email,
+        password: form.password
+      }, {
+        withCredentials: true
+      });
+      console.log(res);
+      navigate("/");
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
+  }
 
-    async function handleSubmit(e) {
-        e.preventDefault();
-        setSubmitting(true);
+  return (
+    <div className="auth-container">
+      <motion.div 
+        className="auth-card"
+        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
+        <header className="auth-header">
+          <motion.div 
+            className="auth-logo-text"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 20, delay: 0.1 }}
+          >
+            Jarvis AI
+          </motion.div>
+          <h1 className="auth-title">Welcome back</h1>
+          <p className="auth-subtitle">Sign in to continue to Jarvis AI</p>
+        </header>
 
+        <form className="auth-form" onSubmit={handleSubmit} noValidate>
+          <div className="field-group">
+            <label htmlFor="login-email">Email address</label>
+            <motion.input
+              id="login-email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              value={form.email}
+              onChange={handleChange}
+              required
+              whileFocus={{ scale: 1.01 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            />
+          </div>
 
-        console.log(form);
+          <div className="field-group">
+            <label htmlFor="login-password">Password</label>
+            <motion.input
+              id="login-password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="Enter your password"
+              value={form.password}
+              onChange={handleChange}
+              required
+              whileFocus={{ scale: 1.01 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            />
+          </div>
 
-        axios.post(`${API_URL}/api/auth/login`, {
-            email: form.email,
-            password: form.password
-        },
-            {
-                withCredentials: true
-            }
-        ).then((res) => {
-            console.log(res);
-            navigate("/");
-        }).catch((err) => {
-            console.error(err);
-        }).finally(() => {
-            setSubmitting(false);
-        });
+          {error && (
+            <motion.p 
+              style={{ color: '#ef4444', fontSize: '14px', margin: 0 }}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+            >
+              {error}
+            </motion.p>
+          )}
 
-    }
+          <motion.button
+            type="submit"
+            className="auth-submit"
+            disabled={submitting}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            {submitting ? 'Signing in...' : 'Sign in'}
+          </motion.button>
+        </form>
 
-    return (
-        <div className="center-min-h-screen" style={{ background: 'var(--color-bg)', color: 'var(--color-text)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div className="auth-card" role="main" aria-labelledby="login-heading" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-sm)', padding: 'var(--space-6) var(--space-5)', maxWidth: 400, width: '100%' }}>
-                <header className="auth-header" style={{ marginBottom: 'var(--space-4)' }}>
-                    <h1 id="login-heading" style={{ fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--text-lg)' }}>Sign in</h1>
-                    <p className="auth-sub" style={{ color: 'var(--color-text-muted)' }}>Welcome back. We've missed you.</p>
-                </header>
-                <form className="auth-form" onSubmit={handleSubmit} noValidate>
-                    <div className="field-group" style={{ marginBottom: 'var(--space-4)' }}>
-                        <label htmlFor="login-email">Email</label>
-                        <input id="login-email" name="email" type="email" autoComplete="email" placeholder="you@example.com" onChange={handleChange} required style={{ width: '100%', padding: 'var(--space-2)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-alt)' }} />
-                    </div>
-                    <div className="field-group" style={{ marginBottom: 'var(--space-4)' }}>
-                        <label htmlFor="login-password">Password</label>
-                        <input id="login-password" name="password" type="password" autoComplete="current-password" placeholder="Your password" onChange={handleChange} required style={{ width: '100%', padding: 'var(--space-2)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-alt)' }} />
-                    </div>
-                    <button type="submit" className="primary-btn" disabled={submitting} style={{ background: 'var(--color-primary)', color: '#fff', borderRadius: 'var(--radius-full)', padding: '0.75em 2em', fontWeight: 'var(--font-weight-medium)', border: 'none', marginTop: 'var(--space-3)' }}>
-                        {submitting ? 'Signing in...' : 'Sign in'}
-                    </button>
-                </form>
-                <p className="auth-alt" style={{ marginTop: 'var(--space-4)', color: 'var(--color-text-muted)' }}>Need an account? <Link to="/register">Create one</Link></p>
-            </div>
-        </div>
-    );
+        <p className="auth-footer">
+          Don't have an account? <Link to="/register">Create one</Link>
+        </p>
+      </motion.div>
+    </div>
+  );
 };
 
 export default Login;
