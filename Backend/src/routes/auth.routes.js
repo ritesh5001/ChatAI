@@ -3,6 +3,13 @@ const authControllers = require("../controllers/auth.controller")
 const { passport, generateToken } = require("../config/passport")
 const router = express.Router();
 
+// Cookie options for cross-origin
+const cookieOptions = {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    maxAge: 7 * 24 * 60 * 60 * 1000
+};
 
 router.post("/register",authControllers.registerUser)
 router.post("/login",authControllers.loginUser)
@@ -15,7 +22,7 @@ router.get("/google/callback",
     passport.authenticate('google', { session: false, failureRedirect: '/login?error=google_auth_failed' }),
     (req, res) => {
         const token = generateToken(req.user);
-        res.cookie("token", token);
+        res.cookie("token", token, cookieOptions);
         // Redirect to frontend
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
         res.redirect(frontendUrl);
@@ -29,7 +36,7 @@ router.get("/github/callback",
     passport.authenticate('github', { session: false, failureRedirect: '/login?error=github_auth_failed' }),
     (req, res) => {
         const token = generateToken(req.user);
-        res.cookie("token", token);
+        res.cookie("token", token, cookieOptions);
         // Redirect to frontend
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
         res.redirect(frontendUrl);
