@@ -1,6 +1,105 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import './ChatMessages.css';
+
+// Custom code block component with copy button
+const CodeBlock = ({ language, children }) => {
+  const [copied, setCopied] = useState(false);
+  
+  const handleCopy = () => {
+    navigator.clipboard.writeText(children);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  
+  return (
+    <div className="code-block-wrapper">
+      <div className="code-block-header">
+        <span className="code-language">{language || 'code'}</span>
+        <button 
+          className="code-copy-btn"
+          onClick={handleCopy}
+          aria-label="Copy code"
+        >
+          {copied ? (
+            <>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="14" height="14">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              Copied!
+            </>
+          ) : (
+            <>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="14" height="14">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+              Copy
+            </>
+          )}
+        </button>
+      </div>
+      <SyntaxHighlighter
+        language={language || 'text'}
+        style={oneDark}
+        customStyle={{
+          margin: 0,
+          borderRadius: '0 0 8px 8px',
+          fontSize: '13px',
+          padding: '16px',
+        }}
+        wrapLongLines={true}
+      >
+        {children}
+      </SyntaxHighlighter>
+    </div>
+  );
+};
+
+// Markdown renderer for AI messages
+const MessageContent = ({ content, isStreaming }) => {
+  return (
+    <ReactMarkdown
+      components={{
+        code({ node, inline, className, children, ...props }) {
+          const match = /language-(\w+)/.exec(className || '');
+          const language = match ? match[1] : '';
+          
+          if (!inline && (match || String(children).includes('\n'))) {
+            return (
+              <CodeBlock language={language}>
+                {String(children).replace(/\n$/, '')}
+              </CodeBlock>
+            );
+          }
+          
+          return (
+            <code className="inline-code" {...props}>
+              {children}
+            </code>
+          );
+        },
+        // Style other markdown elements
+        p: ({ children }) => <p className="md-paragraph">{children}</p>,
+        ul: ({ children }) => <ul className="md-list">{children}</ul>,
+        ol: ({ children }) => <ol className="md-list md-list-ordered">{children}</ol>,
+        li: ({ children }) => <li className="md-list-item">{children}</li>,
+        h1: ({ children }) => <h1 className="md-heading md-h1">{children}</h1>,
+        h2: ({ children }) => <h2 className="md-heading md-h2">{children}</h2>,
+        h3: ({ children }) => <h3 className="md-heading md-h3">{children}</h3>,
+        strong: ({ children }) => <strong className="md-bold">{children}</strong>,
+        em: ({ children }) => <em className="md-italic">{children}</em>,
+        blockquote: ({ children }) => <blockquote className="md-blockquote">{children}</blockquote>,
+        a: ({ href, children }) => <a href={href} className="md-link" target="_blank" rel="noopener noreferrer">{children}</a>,
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  );
+};
 
 const messageVariants = {
   hidden: { opacity: 0, y: 20, scale: 0.95 },
@@ -112,8 +211,14 @@ const ChatMessages = ({ messages, isSending }) => {
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
             >
-              {m.content}
-              {m.isStreaming && <span className="streaming-cursor">▋</span>}
+              {m.type === 'ai' ? (
+                <>
+                  <MessageContent content={m.content} isStreaming={m.isStreaming} />
+                  {m.isStreaming && <span className="streaming-cursor">▋</span>}
+                </>
+              ) : (
+                m.content
+              )}
             </motion.div>
             <div className="msg-actions" role="group" aria-label="Message actions">
               <motion.button 
