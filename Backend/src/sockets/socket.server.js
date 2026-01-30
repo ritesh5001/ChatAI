@@ -9,7 +9,11 @@ const { createMemory, queryMemory } = require("../services/vector.service");
 function initSocketServer(httpServer) {
     const io = new Server(httpServer, {
         cors: {
-            origin: "http://localhost:5173",
+            origin: [
+                "http://localhost:5173",
+                "https://chat-ai-backend-mz5ltgm88-smaranapp.vercel.app",
+                /\.vercel\.app$/
+            ],
             allowedHeaders: ["Content-Type", "Authorization"],
             credentials: true,
         }

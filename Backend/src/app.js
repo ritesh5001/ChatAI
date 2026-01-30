@@ -9,9 +9,29 @@ const chatRoutes = require('./routes/chat.routes.js');
 /* Using middlewares */
 const app = express();
 
+const allowedOrigins = [
+    'http://localhost:5173',
+    'https://chat-ai-backend-mz5ltgm88-smaranapp.vercel.app',
+    /\.vercel\.app$/
+];
+
 app.use(cors({
-    origin:'http://localhost:5173',
-    credentials:true
+    origin: function(origin, callback) {
+        // Allow requests with no origin (mobile apps, curl, etc)
+        if (!origin) return callback(null, true);
+        
+        const isAllowed = allowedOrigins.some(allowed => {
+            if (allowed instanceof RegExp) return allowed.test(origin);
+            return allowed === origin;
+        });
+        
+        if (isAllowed) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true
 }));
 app.use(express.json());
 app.use(cookieParser());
