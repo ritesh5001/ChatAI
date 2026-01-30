@@ -12,7 +12,9 @@ const app = express();
 const allowedOrigins = [
     'http://localhost:5173',
     'https://chat-ai-backend-mz5ltgm88-smaranapp.vercel.app',
-    /\.vercel\.app$/
+    'https://jarvisai.riteshgiri.dev',
+    /\.vercel\.app$/,
+    /\.riteshgiri\.dev$/
 ];
 
 app.use(cors({
