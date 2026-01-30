@@ -93,7 +93,7 @@ const Home = () => {
       });
 
     axios.get(`${API_URL}/api/chat`, { withCredentials: true })
-      .then(response => {
+      .then(async response => {
         console.log(response.data);
         const chatList = response.data.chats.reverse();
         dispatch(setChats(chatList));
@@ -103,6 +103,9 @@ const Home = () => {
           const lastChat = chatList[0];
           dispatch(selectChat(lastChat._id));
           getMessages(lastChat._id);
+        } else if (chatList.length === 0) {
+          // No chats exist - auto-create a new chat for new users
+          setPendingNewChat(true);
         }
       })
       .catch(err => {
@@ -184,12 +187,12 @@ const Home = () => {
       <main className="chat-main" role="main">
         {messages.length === 0 && !pendingNewChat && (
           <div className="chat-welcome" aria-hidden="true">
-            <div className="welcome-badge">Early Preview</div>
-            <h1 className="welcome-title">Ask Jarvis</h1>
+            <div className="welcome-badge">AI Assistant</div>
+            <h1 className="welcome-title">Meet Jarvis</h1>
             <p className="welcome-text">
-              If you haven't logged in yet, please log in first. Once logged in, 
-              you can ask anything—paste text, brainstorm ideas, or get quick explanations. 
-              Your chats will stay in the sidebar so you can continue anytime.
+              Your intelligent AI companion powered by advanced language models. 
+              Ask questions, generate code, brainstorm ideas, analyze text, or get creative help. 
+              Jarvis remembers your conversation context for seamless, natural interactions.
             </p>
           </div>
         )}
