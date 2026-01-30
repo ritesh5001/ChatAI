@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/theme.css';
+import API_URL from '../config/api';
 
 const Register = () => {
     const [ form, setForm ] = useState({ email: '', firstname: '', lastname: '', password: '' });
@@ -19,7 +20,7 @@ const Register = () => {
         setSubmitting(true);
         console.log(form);
 
-        axios.post("https://jarvis-ai-3cl2.onrender.com/api/auth/register", {
+        axios.post(`${API_URL}/api/auth/register`, {
             email: form.email,
             fullName: {
                 firstName: form.firstname,

@@ -9,6 +9,7 @@ import '../components/chat/ChatLayout.css';
 import { fakeAIReply } from '../components/chat/aiClient.js';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
+import API_URL from '../config/api';
 import {
   ensureInitialChat,
   startNewChat,
@@ -40,7 +41,7 @@ const Home = () => {
     if (title) title = title.trim();
     if (!title) return
 
-    const response = await axios.post("https://jarvis-ai-3cl2.onrender.com/api/chat", {
+    const response = await axios.post(`${API_URL}/api/chat`, {
       title
     }, {
       withCredentials: true
@@ -57,7 +58,7 @@ const Home = () => {
 
   useEffect(() => {
 
-    axios.get("https://jarvis-ai-3cl2.onrender.com/api/chat", { withCredentials: true })
+    axios.get(`${API_URL}/api/chat`, { withCredentials: true })
       .then(response => {
         console.log(response.data)
         dispatch(setChats(response.data.chats.reverse()));
@@ -66,7 +67,7 @@ const Home = () => {
       
 
 
-    const tempSocket = io("https://jarvis-ai-3cl2.onrender.com/", {
+    const tempSocket = io(API_URL, {
       withCredentials: true,
     })
 
@@ -111,7 +112,7 @@ const Home = () => {
 
   const getMessages = async (chatId) => {
     // Corrected the port from 5173 (frontend) to 3000 (backend)
-    const response = await axios.get(`https://jarvis-ai-3cl2.onrender.com/api/chat/messages/${chatId}`, { withCredentials: true })
+    const response = await axios.get(`${API_URL}/api/chat/messages/${chatId}`, { withCredentials: true })
 
     console.log("Fetched messages:", response.data.messages);
 

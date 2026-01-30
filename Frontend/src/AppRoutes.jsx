@@ -5,6 +5,7 @@ import axios from 'axios';
 import Home from './pages/Home';
 import Register from './pages/Register';
 import Login from './pages/Login';
+import API_URL from './config/api';
 
 const RequireAuth = ({ children }) => {
   const [ status, setStatus ] = useState('checking');
@@ -12,7 +13,7 @@ const RequireAuth = ({ children }) => {
   useEffect(() => {
     let isActive = true;
 
-    axios.get("https://jarvis-ai-3cl2.onrender.com/api/chat", { withCredentials: true })
+    axios.get(`${API_URL}/api/chat`, { withCredentials: true })
       .then(() => {
         if (isActive) setStatus('authed');
       })
