@@ -64,8 +64,56 @@ async function getMessages(req, res) {
 
 }
 
+async function renameChat(req, res) {
+    const chatId = req.params.id;
+    const { title } = req.body;
+    const user = req.user;
+
+    const chat = await Chat.findOne({ where: { id: chatId, userId: user.id } });
+
+    if (!chat) {
+        return res.status(404).json({ message: "Chat not found" });
+    }
+
+    chat.title = title;
+    await chat.save();
+
+    res.status(200).json({
+        message: "Chat renamed successfully",
+        chat: {
+            _id: chat.id,
+            title: chat.title,
+            lastActivity: chat.lastActivity,
+            user: chat.userId
+        }
+    });
+}
+
+async function deleteChat(req, res) {
+    const chatId = req.params.id;
+    const user = req.user;
+
+    const chat = await Chat.findOne({ where: { id: chatId, userId: user.id } });
+
+    if (!chat) {
+        return res.status(404).json({ message: "Chat not found" });
+    }
+
+    // Delete all messages in the chat first
+    await Message.destroy({ where: { chatId } });
+    
+    // Delete the chat
+    await chat.destroy();
+
+    res.status(200).json({
+        message: "Chat deleted successfully"
+    });
+}
+
 module.exports = {
     createChat,
     getChats,
-    getMessages
+    getMessages,
+    renameChat,
+    deleteChat
 };

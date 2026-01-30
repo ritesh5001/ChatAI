@@ -19,7 +19,9 @@ import {
   sendingFinished,
   addUserMessage,
   addAIMessage,
-  setChats
+  setChats,
+  renameChat,
+  deleteChat
 } from '../store/chatSlice.js';
 
 const Home = () => {
@@ -34,6 +36,7 @@ const Home = () => {
   const activeChat = chats.find(c => c.id === activeChatId) || null;
 
   const [messages, setMessages] = useState([]);
+  const [pendingNewChat, setPendingNewChat] = useState(false);
 
   const getMessages = async (chatId) => {
     const response = await axios.get(`${API_URL}/api/chat/messages/${chatId}`, { withCredentials: true });
@@ -46,11 +49,7 @@ const Home = () => {
     })));
   };
 
-  const handleNewChat = async () => {
-    let title = window.prompt('Enter a title for the new chat:', '');
-    if (title) title = title.trim();
-    if (!title) return;
-
+  const createChatWithTitle = async (title) => {
     const response = await axios.post(`${API_URL}/api/chat`, {
       title
     }, {
@@ -58,10 +57,28 @@ const Home = () => {
     });
 
     console.log(response.data);
-
-    getMessages(response.data.chat._id);
     dispatch(startNewChat(response.data.chat));
+    return response.data.chat._id;
+  };
+
+  const handleNewChat = () => {
+    // Clear current chat and set pending flag for auto-title
+    setMessages([]);
+    dispatch(selectChat(null));
+    setPendingNewChat(true);
     setSidebarOpen(false);
+  };
+
+  const handleRenameChat = (chatId, newTitle) => {
+    dispatch(renameChat({ chatId, newTitle }));
+  };
+
+  const handleDeleteChat = (chatId) => {
+    dispatch(deleteChat(chatId));
+    // If deleted chat was active, clear messages
+    if (chatId === activeChatId) {
+      setMessages([]);
+    }
   };
 
   useEffect(() => {
@@ -103,8 +120,20 @@ const Home = () => {
   const sendMessage = async () => {
     const trimmed = input.trim();
     console.log("Sending message:", trimmed);
-    if (!trimmed || !activeChatId || isSending) return;
-    dispatch(sendingStarted());
+    if (!trimmed || isSending) return;
+    
+    // If pending new chat, create chat with first message as title
+    let chatId = activeChatId;
+    if (pendingNewChat || !activeChatId) {
+      dispatch(sendingStarted());
+      // Generate title from first message (first 40 chars)
+      const autoTitle = trimmed.length > 40 ? trimmed.substring(0, 40) + '...' : trimmed;
+      chatId = await createChatWithTitle(autoTitle);
+      dispatch(selectChat(chatId));
+      setPendingNewChat(false);
+    } else {
+      dispatch(sendingStarted());
+    }
 
     const newMessages = [...messages, {
       type: 'user',
@@ -117,7 +146,7 @@ const Home = () => {
     dispatch(setInput(''));
 
     socket.emit("ai-message", {
-      chat: activeChatId,
+      chat: chatId,
       content: trimmed
     });
   };
@@ -137,10 +166,12 @@ const Home = () => {
           getMessages(id);
         }}
         onNewChat={handleNewChat}
+        onRenameChat={handleRenameChat}
+        onDeleteChat={handleDeleteChat}
         open={sidebarOpen}
       />
       <main className="chat-main" role="main">
-        {messages.length === 0 && (
+        {messages.length === 0 && !pendingNewChat && (
           <div className="chat-welcome" aria-hidden="true">
             <div className="welcome-badge">Early Preview</div>
             <h1 className="welcome-title">Ask Jarvis</h1>
@@ -151,8 +182,16 @@ const Home = () => {
             </p>
           </div>
         )}
+        {pendingNewChat && messages.length === 0 && (
+          <div className="chat-welcome" aria-hidden="true">
+            <h1 className="welcome-title">New Chat</h1>
+            <p className="welcome-text">
+              Type your question below. The chat will be named automatically based on your first message.
+            </p>
+          </div>
+        )}
         <ChatMessages messages={messages} isSending={isSending} />
-        {activeChatId && (
+        {(activeChatId || pendingNewChat) && (
           <ChatComposer
             input={input}
             setInput={(v) => dispatch(setInput(v))}
