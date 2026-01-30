@@ -30,17 +30,34 @@ const User = sequelize.define('User', {
     },
     googleId: {
         type: DataTypes.STRING,
-        allowNull: true,
-        unique: true
+        allowNull: true
+        // Removed unique: true - will use index instead
     },
     githubId: {
         type: DataTypes.STRING,
-        allowNull: true,
-        unique: true
+        allowNull: true
+        // Removed unique: true - will use index instead
     }
 }, {
     timestamps: true,
-    tableName: 'users'
+    tableName: 'users',
+    indexes: [
+        // Partial unique indexes - only enforce uniqueness when not null
+        {
+            unique: true,
+            fields: ['googleId'],
+            where: {
+                googleId: { [require('sequelize').Op.ne]: null }
+            }
+        },
+        {
+            unique: true,
+            fields: ['githubId'],
+            where: {
+                githubId: { [require('sequelize').Op.ne]: null }
+            }
+        }
+    ]
 });
 
 module.exports = User;
