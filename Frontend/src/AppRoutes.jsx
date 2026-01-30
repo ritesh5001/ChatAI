@@ -5,6 +5,7 @@ import axios from 'axios';
 import Home from './pages/Home';
 import Register from './pages/Register';
 import Login from './pages/Login';
+import Profile from './pages/Profile';
 import API_URL from './config/api';
 
 const RequireAuth = ({ children }) => {
@@ -50,6 +51,11 @@ const AppRoutes = () => {
         <Route path='/' element={
           <RequireAuth>
             <Home />
+          </RequireAuth>
+        } />
+        <Route path='/profile' element={
+          <RequireAuth>
+            <Profile />
           </RequireAuth>
         } />
         <Route path='/register' element={<Register />} />

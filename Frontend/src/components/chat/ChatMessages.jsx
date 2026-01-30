@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './ChatMessages.css';
 
@@ -15,10 +15,70 @@ const messageVariants = {
 
 const ChatMessages = ({ messages, isSending }) => {
   const bottomRef = useRef(null);
+  const [playingIndex, setPlayingIndex] = useState(null); // Track which message is playing
+  const [isPaused, setIsPaused] = useState(false);
+  const utteranceRef = useRef(null);
   
   useEffect(() => { 
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); 
   }, [messages.length, isSending]);
+
+  // Cleanup speech synthesis on unmount
+  useEffect(() => {
+    return () => {
+      speechSynthesis.cancel();
+    };
+  }, []);
+
+  const handleSpeech = (content, index) => {
+    try {
+      // If this message is currently playing
+      if (playingIndex === index) {
+        if (isPaused) {
+          // Resume
+          speechSynthesis.resume();
+          setIsPaused(false);
+        } else {
+          // Pause
+          speechSynthesis.pause();
+          setIsPaused(true);
+        }
+        return;
+      }
+
+      // Stop any current speech
+      speechSynthesis.cancel();
+      
+      // Create new utterance
+      const utterance = new SpeechSynthesisUtterance(content);
+      utteranceRef.current = utterance;
+      
+      // Handle speech end
+      utterance.onend = () => {
+        setPlayingIndex(null);
+        setIsPaused(false);
+      };
+      
+      // Handle speech error
+      utterance.onerror = () => {
+        setPlayingIndex(null);
+        setIsPaused(false);
+      };
+      
+      // Start speaking
+      speechSynthesis.speak(utterance);
+      setPlayingIndex(index);
+      setIsPaused(false);
+    } catch {
+      /* speech synthesis unsupported */
+    }
+  };
+
+  const stopSpeech = () => {
+    speechSynthesis.cancel();
+    setPlayingIndex(null);
+    setIsPaused(false);
+  };
   
   return (
     <div className="messages" aria-live="polite">
@@ -58,24 +118,53 @@ const ChatMessages = ({ messages, isSending }) => {
                 </svg>
               </motion.button>
               {m.type === 'ai' && (
-                <motion.button 
-                  type="button" 
-                  aria-label="Speak message"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => { 
-                    try { 
-                      const u = new SpeechSynthesisUtterance(m.content); 
-                      speechSynthesis.speak(u);
-                    } catch { /* speech synthesis unsupported */ } 
-                  }}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-                  </svg>
-                </motion.button>
+                <>
+                  <motion.button 
+                    type="button" 
+                    aria-label={playingIndex === index ? (isPaused ? "Resume" : "Pause") : "Speak message"}
+                    className={playingIndex === index ? 'audio-active' : ''}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => handleSpeech(m.content, index)}
+                  >
+                    {playingIndex === index && !isPaused ? (
+                      // Pause icon
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="6" y="4" width="4" height="16" rx="1" />
+                        <rect x="14" y="4" width="4" height="16" rx="1" />
+                      </svg>
+                    ) : playingIndex === index && isPaused ? (
+                      // Play/Resume icon
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <polygon points="5 3 19 12 5 21 5 3" />
+                      </svg>
+                    ) : (
+                      // Speaker icon
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                      </svg>
+                    )}
+                  </motion.button>
+                  {playingIndex === index && (
+                    <motion.button 
+                      type="button" 
+                      aria-label="Stop"
+                      className="audio-stop"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={stopSpeech}
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="4" y="4" width="16" height="16" rx="2" />
+                      </svg>
+                    </motion.button>
+                  )}
+                </>
               )}
             </div>
           </motion.div>

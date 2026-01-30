@@ -5,7 +5,7 @@ import axios from 'axios';
 import API_URL from '../../config/api';
 import './ChatSidebar.css';
 
-const ChatSidebar = ({ chats, activeChatId, onSelectChat, onNewChat, onDeleteChat, onRenameChat, open }) => {
+const ChatSidebar = ({ chats, activeChatId, onSelectChat, onNewChat, onDeleteChat, onRenameChat, open, user }) => {
   const navigate = useNavigate();
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, chatId: null, chatTitle: '' });
   const contextMenuRef = useRef(null);
@@ -169,18 +169,35 @@ const ChatSidebar = ({ chats, activeChatId, onSelectChat, onNewChat, onDeleteCha
       </AnimatePresence>
 
       <div className="sidebar-footer">
-        <motion.button 
-          className="logout-btn" 
-          onClick={handleLogout}
+        <motion.div 
+          className="user-profile"
+          onClick={() => navigate('/profile')}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <div className="user-avatar">
+            {user ? (user.firstName?.[0] || '') + (user.lastName?.[0] || '') : '?'}
+          </div>
+          <div className="user-info">
+            <span className="user-name">
+              {user ? `${user.firstName} ${user.lastName || ''}`.trim() : 'Loading...'}
+            </span>
+            <span className="user-email">{user?.email || ''}</span>
+          </div>
+        </motion.div>
+        
+        <motion.button 
+          className="logout-btn" 
+          onClick={handleLogout}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          title="Logout"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
             <polyline points="16 17 21 12 16 7" />
             <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
-          Logout
         </motion.button>
       </div>
     </aside>

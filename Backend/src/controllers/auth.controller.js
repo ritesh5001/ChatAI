@@ -92,6 +92,67 @@ async function logoutUser(req, res) {
     res.status(200).json({ message: "Logged out successfully" });
 }
 
+async function getProfile(req, res) {
+    try {
+        const user = await User.findByPk(req.user.id);
+        
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json({
+            user: {
+                _id: user.id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                googleId: user.googleId,
+                githubId: user.githubId,
+                createdAt: user.createdAt
+            }
+        });
+    } catch (error) {
+        console.error("Get profile error:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+}
+
+async function updateProfile(req, res) {
+    try {
+        const { firstName, lastName } = req.body;
+
+        if (!firstName || !firstName.trim()) {
+            return res.status(400).json({ message: "First name is required" });
+        }
+
+        const user = await User.findByPk(req.user.id);
+        
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        user.firstName = firstName.trim();
+        user.lastName = lastName ? lastName.trim() : '';
+        await user.save();
+
+        res.status(200).json({
+            message: "Profile updated successfully",
+            user: {
+                _id: user.id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                googleId: user.googleId,
+                githubId: user.githubId,
+                createdAt: user.createdAt
+            }
+        });
+    } catch (error) {
+        console.error("Update profile error:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+}
+
 module.exports = {
-    registerUser, loginUser, logoutUser
+    registerUser, loginUser, logoutUser, getProfile, updateProfile
 }

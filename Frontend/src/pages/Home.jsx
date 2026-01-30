@@ -32,6 +32,7 @@ const Home = () => {
   const isSending = useSelector(state => state.chat.isSending);
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const [socket, setSocket] = useState(null);
+  const [user, setUser] = useState(null);
 
   const activeChat = chats.find(c => c.id === activeChatId) || null;
 
@@ -82,6 +83,15 @@ const Home = () => {
   };
 
   useEffect(() => {
+    // Fetch user profile
+    axios.get(`${API_URL}/api/auth/profile`, { withCredentials: true })
+      .then(response => {
+        setUser(response.data.user);
+      })
+      .catch(err => {
+        console.error('Failed to fetch user profile:', err);
+      });
+
     axios.get(`${API_URL}/api/chat`, { withCredentials: true })
       .then(response => {
         console.log(response.data);
@@ -169,6 +179,7 @@ const Home = () => {
         onRenameChat={handleRenameChat}
         onDeleteChat={handleDeleteChat}
         open={sidebarOpen}
+        user={user}
       />
       <main className="chat-main" role="main">
         {messages.length === 0 && !pendingNewChat && (
