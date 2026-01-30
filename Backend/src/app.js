@@ -2,6 +2,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
+const { passport } = require('./config/passport');
 /*Routes*/
 const authRoutes = require('./routes/auth.routes.js')
 const chatRoutes = require('./routes/chat.routes.js');
@@ -11,7 +12,7 @@ const app = express();
 
 const allowedOrigins = [
     'http://localhost:5173',
-    'https://chat-ai-backend-mz5ltgm88-smaranapp.vercel.app',
+    'https://jarvis-ai-one-mocha.vercel.app',
     'https://jarvisai.riteshgiri.dev',
     /\.vercel\.app$/,
     /\.riteshgiri\.dev$/
@@ -37,6 +38,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+app.use(passport.initialize());
 app.use(express.static(path.join(__dirname, '../public')));
 
 /* Using Routes */
