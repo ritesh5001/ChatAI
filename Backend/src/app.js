@@ -45,6 +45,11 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use('/api/auth',authRoutes);
 app.use('/api/chat',chatRoutes);
 
+// Health check endpoint for keep-alive pings
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 app.get("*name", (req, res) => {
     res.sendFile(path.join(__dirname, '../public/index.html'));
 });
