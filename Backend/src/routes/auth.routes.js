@@ -1,7 +1,7 @@
 const express = require('express')
 const authControllers = require("../controllers/auth.controller")
 const { passport, generateToken } = require("../config/passport")
-const authMiddleware = require("../middlewares/auth.middleware")
+const { authUser } = require("../middlewares/auth.middleware")
 const router = express.Router();
 
 // Cookie options for cross-origin
@@ -17,8 +17,8 @@ router.post("/login",authControllers.loginUser)
 router.post("/logout",authControllers.logoutUser)
 
 // Profile routes (protected)
-router.get("/profile", authMiddleware, authControllers.getProfile)
-router.put("/profile", authMiddleware, authControllers.updateProfile)
+router.get("/profile", authUser, authControllers.getProfile)
+router.put("/profile", authUser, authControllers.updateProfile)
 
 // Google OAuth routes
 router.get("/google", passport.authenticate('google', { scope: ['profile', 'email'] }));
