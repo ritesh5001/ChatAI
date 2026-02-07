@@ -3,11 +3,14 @@ const jwt = require('jsonwebtoken');
 
 
 async function authUser(req, res, next) {
-
-    const { token } = req.cookies;
+    // Support both cookie (web) and Authorization header (mobile)
+    const token = req.cookies?.token || 
+                  (req.headers.authorization?.startsWith('Bearer ') 
+                    ? req.headers.authorization.slice(7) 
+                    : null);
 
     if (!token) {
-        return res.status(401).json({ message: 'Unathorized' });
+        return res.status(401).json({ message: 'Unauthorized' });
     }
 
     try {

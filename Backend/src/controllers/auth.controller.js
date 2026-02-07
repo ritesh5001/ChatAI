@@ -34,7 +34,8 @@ async function registerUser(req, res) {
         res.cookie("token", token, cookieOptions);
 
         res.status(201).json({
-            message: "User Registered Succecfully",
+            message: "User Registered Successfully",
+            token, // For mobile clients
             user: {
                 email: user.email,
                 _id: user.id,
@@ -71,7 +72,8 @@ async function loginUser(req, res) {
         res.cookie("token", token, cookieOptions);
 
         res.status(200).json({
-            message: "user logged in succesfully",
+            message: "User logged in successfully",
+            token, // For mobile clients
             user: {
                 email: user.email,
                 _id: user.id,
@@ -95,7 +97,7 @@ async function logoutUser(req, res) {
 async function getProfile(req, res) {
     try {
         const user = await User.findByPk(req.user.id);
-        
+
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
@@ -126,7 +128,7 @@ async function updateProfile(req, res) {
         }
 
         const user = await User.findByPk(req.user.id);
-        
+
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }

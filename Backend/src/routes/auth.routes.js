@@ -193,7 +193,14 @@ router.put("/profile", authUser, authControllers.updateProfile)
  *       302:
  *         description: Redirect to Google OAuth consent page
  */
-router.get("/google", passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get("/google", (req, res, next) => {
+    // Store platform info in state for mobile clients
+    const state = req.query.platform === 'mobile' ? 'mobile' : 'web';
+    passport.authenticate('google', {
+        scope: ['profile', 'email'],
+        state: state
+    })(req, res, next);
+});
 
 /**
  * @swagger
@@ -212,21 +219,43 @@ router.get("/google", passport.authenticate('google', { scope: ['profile', 'emai
  *       302:
  *         description: Redirect to frontend with authentication cookie set
  */
-router.get("/google/callback", 
+router.get("/google/callback",
     (req, res, next) => {
         passport.authenticate('google', { session: false }, (err, user, info) => {
+            const isMobile = req.query.state === 'mobile';
+            const mobileScheme = process.env.MOBILE_SCHEME || 'jarvisai';
+
             if (err) {
                 console.error('[Google Callback] Error:', err.message);
+                if (isMobile) {
+                    return res.redirect(`${mobileScheme}://auth?error=${encodeURIComponent(err.message)}`);
+                }
                 const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
                 return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(err.message)}`);
             }
             if (!user) {
                 console.error('[Google Callback] No user returned');
+                if (isMobile) {
+                    return res.redirect(`${mobileScheme}://auth?error=google_auth_failed`);
+                }
                 const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
                 return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
             }
-            
+
             const token = generateToken(user);
+
+            // For mobile: redirect to deep link with token
+            if (isMobile) {
+                const userData = encodeURIComponent(JSON.stringify({
+                    _id: user.id,
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName
+                }));
+                return res.redirect(`${mobileScheme}://auth?token=${token}&user=${userData}`);
+            }
+
+            // For web: set cookie and redirect
             res.cookie("token", token, cookieOptions);
             const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
             res.redirect(frontendUrl);
@@ -245,7 +274,14 @@ router.get("/google/callback",
  *       302:
  *         description: Redirect to GitHub OAuth consent page
  */
-router.get("/github", passport.authenticate('github', { scope: ['user:email'] }));
+router.get("/github", (req, res, next) => {
+    // Store platform info in state for mobile clients
+    const state = req.query.platform === 'mobile' ? 'mobile' : 'web';
+    passport.authenticate('github', {
+        scope: ['user:email'],
+        state: state
+    })(req, res, next);
+});
 
 /**
  * @swagger
@@ -267,23 +303,45 @@ router.get("/github", passport.authenticate('github', { scope: ['user:email'] })
 router.get("/github/callback",
     (req, res, next) => {
         passport.authenticate('github', { session: false }, (err, user, info) => {
+            const isMobile = req.query.state === 'mobile';
+            const mobileScheme = process.env.MOBILE_SCHEME || 'jarvisai';
+
             if (err) {
                 console.error('[GitHub Callback] Error:', err.message);
+                if (isMobile) {
+                    return res.redirect(`${mobileScheme}://auth?error=${encodeURIComponent(err.message)}`);
+                }
                 const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
                 return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(err.message)}`);
             }
             if (!user) {
                 console.error('[GitHub Callback] No user returned');
+                if (isMobile) {
+                    return res.redirect(`${mobileScheme}://auth?error=github_auth_failed`);
+                }
                 const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
                 return res.redirect(`${frontendUrl}/login?error=github_auth_failed`);
             }
-            
+
             const token = generateToken(user);
+
+            // For mobile: redirect to deep link with token
+            if (isMobile) {
+                const userData = encodeURIComponent(JSON.stringify({
+                    _id: user.id,
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName
+                }));
+                return res.redirect(`${mobileScheme}://auth?token=${token}&user=${userData}`);
+            }
+
+            // For web: set cookie and redirect
             res.cookie("token", token, cookieOptions);
             const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
             res.redirect(frontendUrl);
         })(req, res, next);
     }
 );
- 
+
 module.exports = router;
